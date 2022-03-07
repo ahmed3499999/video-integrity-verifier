@@ -5,7 +5,8 @@ import asyncio
 #file extensions to find
 extensions = [".mp4", ".avi", ".mkv"]
 #path that will be scanned for files using the aforementioned extensions
-mainPath = "/home/ahmed349/usb data/Mieruko-chan/"
+mainPath = "/home/ahmed349/usb data/"
+cachePath = os.getcwd() + "/cache.log"
 
 #function to get all videos in given path
 def get_all_videos(path):
@@ -38,25 +39,44 @@ def main():
     #variable for storing all integrity output we generate for overview
     fullOutput = ""
     completedVideos = []
+
+    if not os.path.exists(cachePath): open(cachePath, 'x').close()
+
     #loop over every video we found
     for (path, name) in videos:
-        #get the integrity data
-        completedVideos.append((path, name))
         print(f"({len(completedVideos)}/{len(videos)}) Processsing {path}/{name}")
+
+        cacheFile = open(cachePath, 'r')
+        if f"{path}/{name}" in cacheFile.read():
+            print("File already processed before!!")
+            videos.remove((path, name))
+            cacheFile.close()
+            continue
+        cacheFile.close()
+
+        #get the integrity data
         integrityData = verify_integrity(path, name)
+        completedVideos.append((path, name))
         #append all data we get to the full output using the video path as a header with some whitespace
         fullOutput += "\n\n" + path + "/" + name + "\n" + integrityData
-        #create a file for each video for its integrity data
-        f = open(path + "/" + os.path.splitext(name)[0] + "-error.log", 'w')
-        #write the data
-        f.write(integrityData)
-        #close file stream
-        f.close()
+        #create a file for each video for its integrity data (if we got the data)
+        if len(integrityData.strip()) > 0:
+            f = open(path + "/" + os.path.splitext(name)[0] + "-error.log", 'w')
+            #write the data
+            f.write(integrityData)
+            #close file stream
+            f.close()
+        
         #write our full integrity data to a file
         f = open(mainPath + "/" + "output.log", 'w')
         f.write(fullOutput)
         f.close()
-        status = "Found errors" if integrityData != None else "File is valid!"
+
+        #add to cache
+        cacheFile = open(cachePath, 'a')
+        cacheFile.write(f"{path}/{name}\n")
+        cacheFile.close()
+        status = "Found errors" if len(integrityData.strip()) > 0 else "File is valid!"
         print (f"Done! - {status}")
     print(f"Processed {len(completedVideos)} Videos!")
 
