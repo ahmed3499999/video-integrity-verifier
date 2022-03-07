@@ -66,7 +66,7 @@ def main():
         processedVideos.append((path, name))
 
         #append all data we get to the full output using the video path as a header with some whitespace
-        fullOutput += "\n\n" + path + "/" + name + "\n" + integrityData
+        fullOutput = "\n\n" + path + "/" + name + "\n" + integrityData
         
         #create a file for each video for its integrity data (if we got the data)
         if len(integrityData.strip()) > 0:
@@ -78,7 +78,7 @@ def main():
             f.close()
         
         #write our full integrity data to a file
-        f = open(mainPath + "/" + "output.log", 'w')
+        f = open(mainPath + "/" + "output.log", 'a')
         f.write(fullOutput)
         f.close()
 
