@@ -6,6 +6,7 @@ import asyncio
 extensions = [".mp4", ".avi", ".mkv"]
 #path that will be scanned for files using the aforementioned extensions
 mainPath = "/home/ahmed349/usb data/"
+#path for generating and writing cache
 cachePath = os.getcwd() + "/cache.log"
 
 #function to get all videos in given path
@@ -38,17 +39,21 @@ def main():
 
     #variable for storing all integrity output we generate for overview
     fullOutput = ""
-    completedVideos = []
+    #for storing processed videos paths
+    processedVideos = []
 
+    #create cache if it doesnt exist
     if not os.path.exists(cachePath): open(cachePath, 'x').close()
 
     #loop over every video we found
     for (path, name) in videos:
-        print(f"({len(completedVideos)}/{len(videos)}) Processsing {path}/{name}")
+        print(f"({len(processedVideos)}/{len(videos)}) Processsing {path}/{name}")
 
+        #check if video has been verified before in cache
         cacheFile = open(cachePath, 'r')
         if f"{path}/{name}" in cacheFile.read():
             print("File already processed before!!")
+            #remove video path from videos list if we already processed it
             videos.remove((path, name))
             cacheFile.close()
             continue
@@ -56,11 +61,16 @@ def main():
 
         #get the integrity data
         integrityData = verify_integrity(path, name)
-        completedVideos.append((path, name))
+
+        #add video path to processed video paths list
+        processedVideos.append((path, name))
+
         #append all data we get to the full output using the video path as a header with some whitespace
         fullOutput += "\n\n" + path + "/" + name + "\n" + integrityData
+        
         #create a file for each video for its integrity data (if we got the data)
         if len(integrityData.strip()) > 0:
+            #create file called {videoname}-error.log, ex: spiderman movie-error.log
             f = open(path + "/" + os.path.splitext(name)[0] + "-error.log", 'w')
             #write the data
             f.write(integrityData)
@@ -72,12 +82,15 @@ def main():
         f.write(fullOutput)
         f.close()
 
-        #add to cache
+        #add processed video to cache file
         cacheFile = open(cachePath, 'a')
         cacheFile.write(f"{path}/{name}\n")
         cacheFile.close()
+
+        #our status will be "Found errors" if the integrity data contains data, else the file is valid
         status = "Found errors" if len(integrityData.strip()) > 0 else "File is valid!"
         print (f"Done! - {status}")
-    print(f"Processed {len(completedVideos)} Videos!")
+    #print total videos processed
+    print(f"Processed {len(processedVideos)} Videos!")
 
 main()
