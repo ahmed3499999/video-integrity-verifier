@@ -5,7 +5,7 @@ import asyncio
 #file extensions to find
 extensions = [".mp4", ".avi", ".mkv"]
 #path that will be scanned for files using the aforementioned extensions
-mainPath = "/home/ahmed349/usb data/"
+mainPath = "/home/ahmed349/usb data/unverified"
 #path for generating and writing cache
 cachePath = os.getcwd() + "/cache.log"
 
@@ -47,7 +47,7 @@ def main():
 
     #loop over every video we found
     for (path, name) in videos:
-        print(f"({len(processedVideos)}/{len(videos)}) Processsing {path}/{name}")
+        print(f"({len(processedVideos) + 1}/{len(videos)}) Processsing {path}/{name}")
 
         #check if video has been verified before in cache
         cacheFile = open(cachePath, 'r')
